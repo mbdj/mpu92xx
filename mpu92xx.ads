@@ -44,7 +44,6 @@
 --  function MPU92XX_Get_Temperature (Device : MPU92XX_Device) return Float;
 --
 
-
 --  MPU92XX I2C device class package
 
 with Interfaces;          use Interfaces;
@@ -236,12 +235,22 @@ package MPU92XX is
 	function MPU92XX_Get_Temp_Sensor_Enabled
 	  (Device : MPU92XX_Device) return Boolean;
 
+	--
+	-- new functions and procedures
+	-- Mehdi Ben Djedidia (07/2022)
+	--
 	-- Return the device id
 	function MPU92XX_Who_Am_I (Device : MPU92XX_Device) return UInt8;
 
 	-- Get temperature
 	function MPU92XX_Get_Temperature (Device : MPU92XX_Device) return Float;
 
+	-- Compute angles
+	--
+	-- Angle_X : angle en rd que fait l'axe X par rapport à l'horizontal
+	-- Angle_Y : angle en rd que fait l'axe X par rapport à l'horizontal
+	procedure Compute_Angles (Acc_X, Acc_Y, Acc_Z    : in Float;
+									Angle_X, Angle_Y       : out Float);
 
 private
 

@@ -31,6 +31,9 @@
 
 with Ada.Unchecked_Conversion;
 
+with Ada.Numerics; use Ada.Numerics;
+with Ada.Numerics.Elementary_Functions; use  Ada.Numerics.Elementary_Functions;
+
 package body MPU92XX is
 
 	--  Evaluate the self test and print the result of this evluation
@@ -790,11 +793,17 @@ package body MPU92XX is
 	----------------------
 	-- MPU92XX_Who_Am_I --
 	----------------------
+	--
+	-- new
+	--
+	-- Mehdi Ben Djedidia 07/2022
+	--
 
 	function MPU92XX_Who_Am_I (Device : MPU92XX_Device) return UInt8
 	is
 		Who_Am_I : UInt8;
 	begin
+		-- lecture du registre WHO_AM_I
 		MPU92XX_Read_UInt8_At_Register
 		  (Device   => Device,
 	  Reg_Addr => MPU92XX_RA_WHO_AM_I,
@@ -804,13 +813,18 @@ package body MPU92XX is
 	end MPU92XX_Who_Am_I;
 
 
-	----------------------
-	-- MPU92XX_Get_Temp --
-	----------------------
-	-- le datasheet indique :
+	-----------------------------
+	-- MPU92XX_Get_Temperature --
+	-----------------------------
+	--
+	-- new
+	--
+	-- Mehdi Ben Djedidia 07/2022
+	--
+	-- le datasheet du MPU9250 indique :
 	-- Temp en °C = (TEMP_OUT - Room_Temp_Offset) / Temp_sensitivity + 21
 	-- avec Room_Temp_Offset = 21 et Temp_sensitivity = 333.87 LSB/°C
-
+	--
 	function MPU92XX_Get_Temperature (Device : MPU92XX_Device ) return Float is
 		ROOM_TEMP_OFFSET : constant Float := 21.0;
 		TEMP_SENSITIVITY : constant Float := 333.87;
@@ -825,5 +839,20 @@ package body MPU92XX is
 											 Data     => TEMP_OUT_L);
 		return (Float (Fuse_Low_And_High_Register_Parts (High => TEMP_OUT_H, Low  => TEMP_OUT_L))-ROOM_TEMP_OFFSET) / TEMP_SENSITIVITY + 21.0;
 	end MPU92XX_Get_Temperature;
+
+
+	procedure Compute_Angles (Acc_X, Acc_Y, Acc_Z    : in Float;
+									Angle_X, Angle_Y       : out Float) is
+	-- cf https://www.hobbytronics.co.uk/accelerometer-info
+		X_Square, Y_Square, Z_Square : Float;
+	begin
+		X_Square := Acc_X * Acc_X;
+		Y_Square := Acc_Y * Acc_Y;
+		Z_Square := Acc_Z * Acc_Z;
+
+		Angle_X := Arctan (Acc_X / Sqrt (Y_Square + Z_Square));
+		Angle_Y := Arctan (Acc_Y / Sqrt (X_Square + Z_Square));
+
+	end Compute_Angles;
 
 end MPU92XX;
